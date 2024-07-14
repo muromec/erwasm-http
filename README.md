@@ -1,6 +1,6 @@
 # Readme
 
-This is a minimal example of WASI component implementing wasi:http/incoming-handler@0.2.0 interface in WASM.
+This is a minimal example of WASI component implementing `wasi:http/incoming-handler@0.2.0` interface in WASM.
 
 Normally this will be a compilation target for rust and friends, but you can of course
 run your normal `.wat` files like this too.
