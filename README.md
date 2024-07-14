@@ -28,3 +28,7 @@ Which will promptly return Hello world to client and write the same message to s
 ## Dependencies
 
 You need wasm-tool and wasmtime to run this.
+
+## Who
+
+If you want to hire me for remote position in software engineering, see email in commit history.
