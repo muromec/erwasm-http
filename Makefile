@@ -1,6 +1,6 @@
 CLI_WORLD=example:host
 
-%.wasm: %.wat
+%.wasm: %.wat wit/world.wit
 	wasm-tools component embed ./wit/ $< -o $@ --world $(CLI_WORLD)/$*
 
 %.component.wasm: %.wasm
