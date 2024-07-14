@@ -1,11 +1,15 @@
-WORLD=example:host/host
+CLI_WORLD=example:host
 
-main.wasm: main.wat
-	wasm-tools component embed ./wit/ $< -o $@ --world $(WORLD)
+%.wasm: %.wat
+	wasm-tools component embed ./wit/ $< -o $@ --world $(CLI_WORLD)/$*
 
-main.component.wasm: main.wasm
+%.component.wasm: %.wasm
 	wasm-tools component new $< -o $@
 
-run: main.component.wasm
+run: cli.component.wasm
 	wasmtime run -S cli=y $<
+	echo $$?
+
+serve: http.component.wasm
+	wasmtime serve -S cli=y $<
 	echo $$?
