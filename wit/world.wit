@@ -1,0 +1,8 @@
+// Entry point definition
+
+package example:host;
+
+world host {
+  include wasi:cli/imports@0.2.0;
+  export wasi:cli/run@0.2.0;
+}
