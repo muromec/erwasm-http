@@ -15,14 +15,17 @@
   (import "wasi:http/types@0.2.0" "[resource-drop]fields" (func $drop_fields (param i32)))
   (import "wasi:io/streams@0.2.0" "[resource-drop]output-stream" (func $drop_stream (param i32)))
 
+  (import "elib" "question-a0" (func $question (result i32)))
+  (import "elib" "answer-a0" (func $answer (result i32)))
+  (import "elib" "wat-a0" (func $wat (result i32)))
+  (import "erdump" "dump" (func $write_erl_mem (param i32 i32) (result i32)))
 
   (memory 1)
   (export "memory" (memory 0))
 
-  (data (i32.const 0) "\00\00\00\00") ;; ret
+  (global $__free_mem i32 (i32.const 200))
 
   (data (i32.const 4) "Hello world!\n") ;; 13
-  (data (i32.const 18) "->realloc\n") ;; 10
 
   (data (i32.const 40) "GET\n")
   (data (i32.const 50) "HEAD\n")
@@ -37,34 +40,6 @@
   (data (i32.const 142) "text/html") ;; 9
   (data (i32.const 152) "Content-Length") ;; 14
   (data (i32.const 166) "0") ;; 1
-
-  (func $strlen (param $ptr i32) (param $limit i32) (result i32)
-    (local $len i32)
-    (local.set $len (i32.const 0))
-    ;; (call $log (local.get $ptr) (i32.const 1)) (drop)
-
-    (loop $l
-      (i32.load8_u (local.get $ptr))
-      (if (i32.eqz) 
-        (then
-          (local.get $len)
-          return
-        )
-      )
-      (local.set $len (i32.add (local.get $len) (i32.const 1)))
-      (local.set $ptr (i32.add (local.get $ptr) (i32.const 1)))
-      ;; (call $log (local.get $ptr) (i32.const 1))
- 
-      (if (i32.ge_u (local.get $len) (local.get $limit))
-        (then
-          (local.get $len)
-          return
-        )
-      )
-      br $l
-    )
-    (local.get $ptr)
-  )
 
   (func $ishead (param $ptr i32) (result i32)
       ;; HEAD is 4 bytes, exactly one i32 value
@@ -84,6 +59,18 @@
       (i32.load (i32.const 0))
   )
 
+  (func $write_erl_ref (param $stream i32) (param $erl_val i32) (result i32)
+      (local $len i32)
+      (call $write_erl_mem (local.get $erl_val) (global.get $__free_mem))
+      (local.set $len)
+      (if (i32.eqz (local.get $len))
+        (then
+          (return (i32.const 0))
+        )
+      )
+      (return (call $write (local.get $stream) (global.get $__free_mem) (local.get $len)))
+  )
+
   (func $log (param $ptr i32) (param $len i32) (result i32)
       (local $stdout i32)
 
@@ -98,16 +85,9 @@
   ;; what realloc
   (func $cabi_realloc (param i32 i32 i32 i32) (result i32)
       (call $log (i32.const 18) (i32.const 10))
-      (drop)
-      (i32.const 0)
+      (unreachable) ;; trap!
   )
   (export "cabi_realloc" (func $cabi_realloc))
-
-
-  (func $hello
-      (call $log (i32.const 4) (i32.const 13))
-      (drop)
-  )
 
   (func $handle (param $req i32) (param $res i32)
       (local $method i32)
@@ -164,7 +144,7 @@
       (if (call $ishead (local.get $method))
         (then nop)
         (else
-          (call $write_flush (local.get $body_stream) (i32.const 4) (i32.const 13)) (drop)
+          (call $write_erl_ref (local.get $body_stream) (call $answer)) (drop)
         )
       )
 
@@ -183,7 +163,6 @@
       ;; (call $drop_res (local.get $res))
       ;; (call $drop_response (local.get $response))
       ;; (call $drop_fields (local.get $headers))
-      (call $hello)
   )
   (export "wasi:http/incoming-handler@0.2.0#handle" (func $handle))
 )

@@ -1,11 +1,22 @@
 CLI_WORLD=example:host
+WFLAGS=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
+
+
+%.S: %.erl
+	erlc -S $<
+
+%.wat: %.S
+	python erwasm/erwasmc.py $< $@
 
 %.wasm: %.wat wit/world.wit
 	wasm-tools component embed ./wit/ $< -o $@ --world $(CLI_WORLD)/$*
 
-%.component.wasm: %.wasm
+%-component.wasm: %.wasm
 	wasm-tools component new $< -o $@
 
-serve: http.component.wasm
-	wasmtime serve -S cli=y $<
+runtime.wat: http.wat elib.wat erdump.wat
+	python watcat/watmerge.py $@ $^
+
+serve: runtime-component.wasm
+	wasmtime serve -S cli=y $< $(WFLAGS)
 	echo $$?

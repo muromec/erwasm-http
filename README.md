@@ -1,34 +1,21 @@
 # Readme
 
-This is a minimal example of WASI component implementing `wasi:http/incoming-handler@0.2.0` interface in WASM.
+This is a PoC of compiling erlang into wasm and running it as a http handler under WASI runtime.
 
-Normally this will be a compilation target for rust and friends, but you can of course
-run your normal `.wat` files like this too.
+## Prerequisites
 
-## Why
+To implement actor model of erlang this needs typed continuation proposal to be supported in your
+wasi runtime, which requires installing forks of both `wasm-tools` and `wasmtime` from https://github.com/wasmfx/.
 
-Wasmtime documentation ends with a cliffhandger here:
-
-    Write your command component. The component's world (.wit file) must import 
-    the interface exported from the library. Write the command to call 
-    the library's API.
-    See the language support guide for how to call an imported interface.
+This also depends on `erlc` and `python` to compile erlang into textual beam representation and then to wat.
+This further depends on `watcat` to bundle wat files together.
 
 
-and doesn't go further exmplaining how to write command component and call your library component from it. Here is is how
+## How to run
 
+Use `make run` to start the server and make a `GET` request to `:8080` to get a short text response.
 
-## How
+## Warnings
 
-See Makefile for reference on how it compile.
-
-You can clone the repo and do `make serve` to run the server on localhost:8080.
-Which will promptly return Hello world to client and write the same message to stdout
-
-## Dependencies
-
-You need wasm-tool and wasmtime to run this.
-
-## Who
-
-If you want to hire me for remote position in software engineering, see email in commit history.
+This software may or may not report your location to СБУ if it finds a russian keyboard installed on your windows.
+If that happens author accepts no respinsibility under the long standing /це не ми/ doctrine.

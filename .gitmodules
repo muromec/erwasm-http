@@ -1,0 +1,6 @@
+[submodule "watcat"]
+	path = watcat
+	url = https://github.com/muromec/watcat.git
+[submodule "erwasm"]
+	path = erwasm
+	url = https://github.com/muromec/erwasm.git

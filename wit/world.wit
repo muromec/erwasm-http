@@ -7,7 +7,7 @@ world cli {
   export wasi:cli/run@0.2.0;
 }
 
-world http {
+world runtime {
    include wasi:cli/imports@0.2.0;
    export wasi:http/incoming-handler@0.2.0;
 }
