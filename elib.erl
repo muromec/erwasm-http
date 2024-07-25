@@ -13,6 +13,7 @@ question([]) ->
 
 question([X|_Ignore]) ->
   case X of
+    $A -> "Hi!\n";
     $I -> answer();
     _Else -> huh()
   end.
