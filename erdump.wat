@@ -1,5 +1,85 @@
 (module
-  (global $__free_mem (mut i32) (i32.const 0))
+  (import "wasi:cli/stdout@0.2.0" "get-stdout" (func $get_stdout (result i32)))
+  (import "wasi:io/streams@0.2.0" "[method]output-stream.blocking-write-and-flush" (func $output_stream_write_flush (param i32 i32 i32 i32)))
+
+  (data (i32.const 0) "") ;; 4
+  (data (i32.const 4) "Hi\n") ;; 3
+  (data (i32.const 8) "0x00000000\n") ;; 18
+
+  (global $__ret__literal_ptr_raw i32 (i32.const 0))
+  (global $__hi__literal_ptr_raw i32 (i32.const 4))
+  (global $__buffer__literal_ptr_raw i32 (i32.const 8))
+
+  (global $__free_mem (mut i32) (i32.const 26))
+
+  (func $write_flush (param $stream i32) (param $ptr i32) (param $len i32) (result i32)
+      ;; pass four args to write method
+      ;; stdout handle, memory pointer, lentgh of data and mem pointer to store result
+      (call $output_stream_write_flush (local.get $stream) (local.get $ptr) (local.get $len) (global.get $__ret__literal_ptr_raw))
+      (i32.load (global.get $__ret__literal_ptr_raw))
+  )
+
+  (func $log (param $ptr i32) (param $len i32) (result i32)
+      (local $stdout i32)
+
+      ;; get stdout handle because you cant just assume its 0
+      ;; everyone knows that magic constants are bad and unix isnt
+      ;; well designed in this department
+      (local.set $stdout (call $get_stdout))
+
+      (call $write_flush (local.get $stdout) (local.get $ptr) (local.get $len))
+  )
+  (export "erdump#log" (func $log))
+
+  (func $hexlog (param $value i32) (result i32)
+      (local $buf i32)
+      (local $temp i32)
+      (local $buflen i32)
+      (local $len i32)
+      (local.set $buf (i32.add (i32.const 9) (global.get $__buffer__literal_ptr_raw)))
+      (local.set $len (i32.const 8))
+
+      (loop $loop
+      (local.get $value)
+      (i32.and (i32.const 0xF))
+      (local.set $temp)
+      (if (i32.le_u (local.get $temp) (i32.const 9))
+          (then
+            (i32.store8 (local.get $buf) (i32.add (i32.const 0x30) (local.get $temp)))
+          )
+          (else
+            (i32.store8 (local.get $buf) (i32.add (i32.const 0x37) (local.get $temp)))
+          )
+      )
+      (local.set $buf (i32.sub (local.get $buf) (i32.const 1)))
+      (local.set $value (i32.shr_u (local.get $value) (i32.const 4)))
+
+      (local.set $len (i32.sub (local.get $len) (i32.const 1)))
+      (local.get $len)
+      (if (i32.eqz) (then) (else (br $loop)))
+      )
+
+      (call $log (global.get $__buffer__literal_ptr_raw ) (i32.const 11))
+  )
+
+  (export "erdump#hexlog" (func $hexlog))
+
+  (func $alloc (param $align i32) (param $size i32) (result i32)
+      (local $tmp i32)
+      (local $ret i32)
+      (local.set $ret (global.get $__free_mem))
+
+      (local.set $tmp (i32.ctz (local.get $align)))
+      (i32.shl
+        (i32.shr_u (local.get $ret) (local.get $tmp))
+        (local.get $tmp)
+      )
+      (local.set $ret)
+      (local.set $ret (i32.add (local.get $ret) (local.get $align)))
+      (global.set $__free_mem (i32.add (local.get $ret) (local.get $size)))
+      (local.get $ret)
+  )
+  (export "erdump#alloc" (func $alloc))
 
   (func $read_erl_mem (param $erl_val i32) (param $mem_buffer i32) (result i32)
     (local $their_ptr i32)
@@ -53,6 +133,16 @@
 
         (br $loop)
         ;; (br $find_type)
+      )
+    )
+
+    (if (i32.eq (i32.const 0x3b) (local.get $erl_val))
+      (then
+        ;; null
+        (i32.store (local.get $mem_buffer) (i32.const 0x4C4C554E))
+        (i32.const 4)
+        (local.set $mem_buffer (i32.add (local.get $mem_buffer)))
+        (br $find_type)
       )
     )
 
@@ -125,6 +215,56 @@
     ;; (local.get $ret)
   )
 
-  (export "erdump#write_str", (func $write_str))
+  (export "erdump#write_str" (func $write_str))
+
+  (func $write_buf (param $mem i32) (param $len i32) (result i32)
+    (local $ptr i32)
+    (local $ret i32)
+    (local $erlen i32)
+
+    ;; For N len string, allocate (N + (2 * 4)) mem
+    (local.set $erlen (i32.add (i32.const 8) (local.get $len)))
+
+    ;; word align size
+    (i32.shl
+      (i32.shr_u (local.get $erlen) (i32.const 2))
+      (i32.const 2)
+    )
+    (i32.add (i32.const 4))
+    (local.set $erlen)
+
+    (local.set $ptr (call $alloc (i32.const 4) (local.get $erlen)))
+    (local.set $ret (local.get $ptr))
+
+    ;; write header
+    (i32.store (local.get $ptr) (i32.const 0x24)) ;; 0 tag heap binary
+    (local.set $ptr (i32.add (i32.const 4) (local.get $ptr)))
+
+    (i32.store ;; 1 binary size
+      (local.get $ptr)
+      (local.get $len)
+    )
+    (local.set $ptr (i32.add (i32.const 4) (local.get $ptr)))
+
+    (block $exit
+    (loop $loop
+      (if (i32.eqz (local.get $len))
+        (then (br $exit))
+      )
+
+      (i32.store8 (local.get $ptr) (i32.load8_u (local.get $mem)))
+
+      (local.set $ptr (i32.add (i32.const 1) (local.get $ptr)))
+      (local.set $mem (i32.add (i32.const 1) (local.get $mem)))
+
+      (local.set $len (i32.sub (local.get $len) (i32.const 1)))
+      (br $loop)
+    )
+    )
+
+    (i32.or (i32.shl (local.get $ret) (i32.const 2)) (i32.const 2))
+  )
+  (export "erdump#write_buf" (func $write_buf))
+
 )
 

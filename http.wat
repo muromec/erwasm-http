@@ -1,8 +1,6 @@
 (module
-  (import "wasi:cli/stdout@0.2.0" "get-stdout" (func $get_stdout (result i32)))
   (import "wasi:io/streams@0.2.0" "[method]input-stream.read" (func $input_stream_read (param i32 i64 i32)))
   (import "wasi:io/streams@0.2.0" "[method]output-stream.write" (func $output_stream_write (param i32 i32 i32 i32)))
-  (import "wasi:io/streams@0.2.0" "[method]output-stream.blocking-write-and-flush" (func $output_stream_write_flush (param i32 i32 i32 i32)))
   (import "wasi:http/types@0.2.0" "[method]incoming-request.method" (func $get_method (param i32 i32)))
   (import "wasi:http/types@0.2.0" "[method]incoming-request.consume" (func $consume_body (param i32 i32)))
   (import "wasi:http/types@0.2.0" "[method]incoming-body.stream" (func $get_input_stream (param i32 i32)))
@@ -19,11 +17,12 @@
   (import "wasi:http/types@0.2.0" "[resource-drop]fields" (func $drop_fields (param i32)))
   (import "wasi:io/streams@0.2.0" "[resource-drop]output-stream" (func $drop_stream (param i32)))
 
-  (import "elib" "question-a1" (func $question (param i32) (result i32)))
-  (import "elib" "answer-a0" (func $answer (result i32)))
-  (import "elib" "wat-a0" (func $wat (result i32)))
+  (import "lib" "dispatch" (func $dispatch (param i32 i32) (result i32)))
   (import "erdump" "dump" (func $read_erl_mem (param i32 i32) (result i32)))
   (import "erdump" "write_str" (func $make_erl_str (param i32 i32) (result i32)))
+  (import "erdump" "write_buf" (func $make_erl_buf (param i32 i32) (result i32)))
+
+  (import "erdump" "alloc" (func $alloc (param i32 i32) (result i32)))
 
   (memory 1)
   (export "memory" (memory 0))
@@ -65,12 +64,6 @@
       (call $output_stream_write (local.get $stream) (local.get $ptr) (local.get $len) (i32.const 0))
       (i32.load (i32.const 0))
   )
-  (func $write_flush (param $stream i32) (param $ptr i32) (param $len i32) (result i32)
-      ;; pass four args to write method
-      ;; stdout handle, memory pointer, lentgh of data and mem pointer to store result
-      (call $output_stream_write_flush (local.get $stream) (local.get $ptr) (local.get $len) (i32.const 0))
-      (i32.load (i32.const 0))
-  )
 
   (func $write_erl_ref (param $stream i32) (param $erl_val i32) (result i32)
       (local $len i32)
@@ -84,36 +77,8 @@
       (return (call $write (local.get $stream) (global.get $__free_mem) (local.get $len)))
   )
 
-  (func $log (param $ptr i32) (param $len i32) (result i32)
-      (local $stdout i32)
-
-      ;; get stdout handle because you cant just assume its 0
-      ;; everyone knows that magic constants are bad and unix isnt
-      ;; well designed in this department
-      (local.set $stdout (call $get_stdout))
-
-      (call $write_flush (local.get $stdout) (local.get $ptr) (local.get $len))
-  )
-
-  (func $alloc (param $align i32) (param $size i32) (result i32)
-      (local $tmp i32)
-      (local $ret i32)
-      (local.set $ret (global.get $__free_mem))
-
-      (local.set $tmp (i32.ctz (local.get $align)))
-      (i32.shl
-        (i32.shr_u (local.get $ret) (local.get $tmp))
-        (local.get $tmp)
-      )
-      (local.set $ret)
-      (local.set $ret (i32.add (local.get $ret) (local.get $align)))
-      (global.set $__free_mem (i32.add (local.get $ret) (local.get $size)))
-      (local.get $ret)
-  )
-
   ;; what realloc
   (func $cabi_realloc (param $old_ptr i32) (param $old_size i32) (param $align i32) (param $size i32) (result i32)
-      ;; (call $log (i32.const 18) (i32.const 10))
       (i32.eqz (local.get $old_ptr))
       (i32.eqz (local.get $old_size))
       (i32.and)
@@ -222,7 +187,13 @@
           ;;  (call $make_erl_str(local.get $req_body_ptr) (local.get $req_body_len))
           ;;  (i32.const 32)
           ;;) (drop)
-          (call $write_erl_ref (local.get $body_stream) (call $question (call $make_erl_str(local.get $req_body_ptr) (local.get $req_body_len)))) (drop)
+          (call $write_erl_ref
+            (local.get $body_stream)
+            (call $dispatch
+              (call $make_erl_buf(local.get $req_body_ptr) (local.get $req_body_len))
+              (i32.const 0)
+            )
+          ) (drop)
           ;; (call $write (local.get $body_stream) (local.get $req_body_ptr) (local.get $req_body_len)) (drop)
         )
       )
