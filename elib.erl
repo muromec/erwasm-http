@@ -1,6 +1,6 @@
 -module(elib).
 
--export([dispatch/2]).
+-export([dispatch/2, parse/1, parse/1]).
 
 wat() -> 42.
 
@@ -22,11 +22,11 @@ question([X|Tail]) ->
 question() ->
   question(wat()).
 
-parse(<<$A, _Bin/binary>>) -> [$A];
+parse(<<$I, $C, _Bin/binary>>) -> [$I];
 
-parse(<<$I, _Bin/binary>>) -> [$I];
+parse(<<$A, $C, _Bin/binary>>) -> [$A];
 
-parse(<<_Other, Bin/binary>>) -> parse(Bin);
+parse(<<_Other:16, Bin/binary>>) -> parse(Bin);
 
 parse(_Else) -> [$F].
 

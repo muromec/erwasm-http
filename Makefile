@@ -14,7 +14,7 @@ WFLAGS=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
 %-component.wasm: %.wasm
 	wasm-tools component new $< -o $@
 
-runtime.wat: http.wat elib.wat erdump.wat lib.wat
+runtime.wat: http.wat elib.wat erdump.wat lib.wat erwasm/minibeam/minibeam_bs.wat
 	python watcat/watmerge.py $@ $^
 
 serve: runtime-component.wasm

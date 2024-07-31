@@ -240,9 +240,9 @@
     (i32.store (local.get $ptr) (i32.const 0x24)) ;; 0 tag heap binary
     (local.set $ptr (i32.add (i32.const 4) (local.get $ptr)))
 
-    (i32.store ;; 1 binary size
+    (i32.store ;; 1 binary size in bits
       (local.get $ptr)
-      (local.get $len)
+      (i32.shl (local.get $len) (i32.const 3))
     )
     (local.set $ptr (i32.add (i32.const 4) (local.get $ptr)))
 
