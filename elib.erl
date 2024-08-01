@@ -22,11 +22,15 @@ question([X|Tail]) ->
 question() ->
   question(wat()).
 
-parse(<<$I, $C, _Bin/binary>>) -> [$I];
+parse(<<$I, _X, $C, _Bin/binary>>) -> [$I];
 
-parse(<<$A, $C, _Bin/binary>>) -> [$A];
+parse(<<$A, _X, $C, _Bin/binary>>) -> [$A];
 
-parse(<<_Other:16, Bin/binary>>) -> parse(Bin);
+parse(<<$X, _Bin:24>>) -> [$X];
+
+parse(<<_BitLen, Bin/binary>>) -> parse(Bin);
+
+% parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
 
 parse(_Else) -> [$F].
 
