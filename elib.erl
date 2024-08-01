@@ -26,11 +26,11 @@ parse(<<$I, _X, $C, _Bin/binary>>) -> [$I];
 
 parse(<<$A, _X, $C, _Bin/binary>>) -> [$A];
 
-parse(<<$X, _Bin:24>>) -> [$X];
+% parse(<<$X, _Bin:24>>) -> [$X];
 
-parse(<<_BitLen, Bin/binary>>) -> parse(Bin);
+% parse(<<_BitLen, Bin/binary>>) -> parse(Bin);
 
-% parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
+parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
 
 parse(_Else) -> [$F].
 
