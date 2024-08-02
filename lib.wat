@@ -1,5 +1,5 @@
 (module
-  (import "elib" "dispatch-a2" (func $dispatch2 (param i32 i32) (result i32)))
+  (import "elib" "dispatch_2" (func $dispatch2 (param i32 i32) (result i32)))
 
   (type $func-a0 (func (result i32)))       ;; [] -> [i32]
   (type $cont-a0 (cont $func-a0)) ;; cont ([] -> [i32])

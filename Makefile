@@ -1,6 +1,7 @@
 CLI_WORLD=example:host
 WFLAGS=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
 
+SOURCES=http.wat elib.wat erdump.wat lib.wat  erwasm/minibeam/math.wat jsone_part.wat  erwasm/minibeam/minibeam_bs.wat  erwasm/minibeam/minibeam_list.wat
 
 %.S: %.erl
 	erlc -S $<
@@ -14,7 +15,7 @@ WFLAGS=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
 %-component.wasm: %.wasm
 	wasm-tools component new $< -o $@
 
-runtime.wat: http.wat elib.wat erdump.wat lib.wat erwasm/minibeam/minibeam_bs.wat
+runtime.wat: $(SOURCES)
 	python watcat/watmerge.py $@ $^
 
 serve: runtime-component.wasm

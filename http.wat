@@ -18,6 +18,7 @@
   (import "wasi:io/streams@0.2.0" "[resource-drop]output-stream" (func $drop_stream (param i32)))
 
   (import "lib" "dispatch" (func $dispatch (param i32 i32) (result i32)))
+  (import "erdump" "log" (func $log (param i32 i32) (result i32)))
   (import "erdump" "dump" (func $read_erl_mem (param i32 i32) (result i32)))
   (import "erdump" "write_str" (func $make_erl_str (param i32 i32) (result i32)))
   (import "erdump" "write_buf" (func $make_erl_buf (param i32 i32) (result i32)))
@@ -181,12 +182,6 @@
       (if (call $ishead (local.get $method))
         (then nop)
         (else
-          ;; (call
-          ;;  $write
-          ;;  (local.get $body_stream)
-          ;;  (call $make_erl_str(local.get $req_body_ptr) (local.get $req_body_len))
-          ;;  (i32.const 32)
-          ;;) (drop)
           (call $write_erl_ref
             (local.get $body_stream)
             (call $dispatch
@@ -194,7 +189,6 @@
               (i32.const 0)
             )
           ) (drop)
-          ;; (call $write (local.get $body_stream) (local.get $req_body_ptr) (local.get $req_body_len)) (drop)
         )
       )
 

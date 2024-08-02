@@ -62,7 +62,7 @@
       (call $log (global.get $__buffer__literal_ptr_raw ) (i32.const 11))
   )
 
-  (export "erdump#hexlog" (func $hexlog))
+  (export "erdump#hexlog_1" (func $hexlog))
 
   (func $alloc (param $align i32) (param $size i32) (result i32)
       (local $tmp i32)

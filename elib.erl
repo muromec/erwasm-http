@@ -2,37 +2,40 @@
 
 -export([dispatch/2, parse/1, parse/1]).
 
-wat() -> 42.
-
 answer() -> "Its not real\n".
 
 huh() -> "This is cool, but what for?\n".
 
 question([]) ->
-  "This is fine\n";
+  "Non\n";
 
 question([X|Tail]) ->
+  erdump:hexlog(X),
   case X of
     $A -> "Hi!\n";
+    123456 -> "Hoi\n";
     $I -> answer();
     $F -> "This is fine\n";
     _Else -> question(Tail)
   end.
 
-question() ->
-  question(wat()).
-
 parse(<<$I, _X, $C, _Bin/binary>>) -> [$I];
 
 parse(<<$A, _X, $C, _Bin/binary>>) -> [$A];
 
-% parse(<<$X, _Bin:24>>) -> [$X];
+parse(<<$X, Bin:24>>) -> parse(Bin);
 
-% parse(<<_BitLen, Bin/binary>>) -> parse(Bin);
+% parse(<<Bin/binary>>) -> jsone_part:parse(Bin);
 
-parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
+% parse(<<>>) -> [$X];
 
-parse(_Else) -> [$F].
+parse(Bin) ->
+  Num = jsone_part:parse(Bin),
+  [Num%,  $A, ].
+  ].
+
+% parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
+
 
 dispatch(Value, ParentPid) ->
   Ret = question(parse(Value)),
