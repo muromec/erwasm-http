@@ -6,11 +6,9 @@ answer() -> "Its not real\n".
 
 huh() -> "This is cool, but what for?\n".
 
-question([]) ->
-  "Non\n";
+question([]) -> huh();
 
 question([X|Tail]) ->
-  % erdump:hexlog(X),
   case X of
     $A -> "Hi!\n";
     123456 -> "Hoi\n";
@@ -26,13 +24,11 @@ parse(<<$A, _X, $C, _Bin/binary>>) -> [$A];
 
 parse(<<$X, Bin:24>>) -> parse(Bin);
 
-% parse(<<Bin/binary>>) -> jsone_part:parse(Bin);
-
-% parse(<<>>) -> [$X];
+parse(<<>>) -> [$X];
 
 parse(Bin) ->
   Num = jsone_part:parse(Bin),
-  [Num, {answer, $I}, $A].
+  [{answer, Num}, Num].
 
 % parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
 
