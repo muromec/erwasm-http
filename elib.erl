@@ -10,10 +10,11 @@ question([]) ->
   "Non\n";
 
 question([X|Tail]) ->
-  erdump:hexlog(X),
+  % erdump:hexlog(X),
   case X of
     $A -> "Hi!\n";
     123456 -> "Hoi\n";
+    {answer, $I} -> "This is the answer\n";
     $I -> answer();
     $F -> "This is fine\n";
     _Else -> question(Tail)
@@ -31,8 +32,7 @@ parse(<<$X, Bin:24>>) -> parse(Bin);
 
 parse(Bin) ->
   Num = jsone_part:parse(Bin),
-  [Num%,  $A, ].
-  ].
+  [Num, {answer, $I}, $A].
 
 % parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);
 
