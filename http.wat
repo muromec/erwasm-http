@@ -17,7 +17,7 @@
   (import "wasi:http/types@0.2.0" "[resource-drop]fields" (func $drop_fields (param i32)))
   (import "wasi:io/streams@0.2.0" "[resource-drop]output-stream" (func $drop_stream (param i32)))
 
-  (import "lib" "dispatch" (func $dispatch (param i32 i32) (result i32)))
+  (import "lib" "dispatch" (func $dispatch (param i32) (result i32)))
   (import "erdump" "log" (func $log (param i32 i32) (result i32)))
   (import "erdump" "dump" (func $read_erl_mem (param i32 i32) (result i32)))
   (import "erdump" "write_str" (func $make_erl_str (param i32 i32) (result i32)))
@@ -186,7 +186,6 @@
             (local.get $body_stream)
             (call $dispatch
               (call $make_erl_buf(local.get $req_body_ptr) (local.get $req_body_len))
-              (i32.const 0)
             )
           ) (drop)
         )

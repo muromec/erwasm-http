@@ -1,8 +1,7 @@
 CLI_WORLD=example:host
 WFLAGS=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
 
-SOURCES=http.wat elib.wat erdump.wat lib.wat  erwasm/minibeam/math.wat jsone_part.wat  erwasm/minibeam/minibeam_bs.wat  erwasm/minibeam/minibeam_list.wat erwasm/minibeam/minibeam_eq.wat erwasm/minibeam/minibeam_tuple.wat
-
+SOURCES=http.wat elib.wat erdump.wat lib.wat  erwasm/minibeam/math.wat jsone_part.wat  erwasm/minibeam/minibeam_bs.wat  erwasm/minibeam/minibeam_list.wat erwasm/minibeam/minibeam_eq.wat erwasm/minibeam/minibeam_tuple.wat erwasm/minibeam/minibeam_proc.wat
 
 %.S: %.erl
 	erlc -S $<
