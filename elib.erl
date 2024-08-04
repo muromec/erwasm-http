@@ -27,7 +27,7 @@ parse(<<$X, Bin:24>>) -> parse(Bin);
 parse(<<>>) -> [$X];
 
 parse(Bin) ->
-  Num = jsone_part:parse(Bin),
+  { ok, Num, _NextBin } = jsone_part:parse(Bin),
   [{answer, Num}, Num].
 
 % parse(<<BitLen:8, Bin:BitLen/binary>>) -> parse(Bin);

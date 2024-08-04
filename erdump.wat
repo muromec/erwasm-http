@@ -120,10 +120,7 @@
 
         (local.set
           $their_ptr
-          (i32.add
-            (local.get $their_ptr)
-            (i32.shr_u (local.get $erl_val) (i32.const 2))
-          )
+          (i32.shr_u (local.get $erl_val) (i32.const 2))
         )
         (local.set $erl_val (i32.load (local.get $their_ptr)))
 
