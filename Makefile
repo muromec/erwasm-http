@@ -1,7 +1,13 @@
 CLI_WORLD=example:host
-WFLAGS=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
+WFLAGS=-Wfunction-references=y
+WFLAGSFX=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
 
-SOURCES=http.wat elib.wat erdump.wat lib.wat  erwasm/minibeam/math.wat jsone_part.wat  erwasm/minibeam/minibeam_bs.wat  erwasm/minibeam/minibeam_list.wat erwasm/minibeam/minibeam_eq.wat erwasm/minibeam/minibeam_tuple.wat erwasm/minibeam/minibeam_proc.wat
+SOURCES=http.wat erdump.wat jsone_part.wat elib.wat
+
+DEPS=erwasm/minibeam/math.wat erwasm/minibeam/minibeam_bs.wat erwasm/minibeam/minibeam_list.wat erwasm/minibeam/minibeam_eq.wat erwasm/minibeam/minibeam_tuple.wat erwasm/minibeam/shim.wat
+
+SOURCES_SYNC=$(SOURCES) $(DEPS) sync-entry.wat
+SOURCES_ASYNC=$(SOURCES) $(DEPS) async-entry.wat erwasm/minibeam/minibeam_proc.wat
 
 %.S: %.erl
 	erlc -S $<
@@ -15,9 +21,16 @@ SOURCES=http.wat elib.wat erdump.wat lib.wat  erwasm/minibeam/math.wat jsone_par
 %-component.wasm: %.wasm
 	wasm-tools component new $< -o $@
 
-runtime.wat: $(SOURCES)
+runtime-sync.wat: $(SOURCES_SYNC)
 	python watcat/watmerge.py $@ $^
 
-serve: runtime-component.wasm
+runtime-async.wat: $(SOURCES_ASYNC)
+	python watcat/watmerge.py $@ $^
+
+serve: runtime-sync-component.wasm
 	wasmtime serve -S cli=y $< $(WFLAGS)
+	echo $$?
+
+servefx: runtime-sync-component.wasm
+	wasmtime serve -S cli=y $< $(WFLAGSFX)
 	echo $$?
