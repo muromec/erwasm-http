@@ -2,9 +2,15 @@ CLI_WORLD=example:host
 WFLAGS=-Wfunction-references=y
 WFLAGSFX=-Wfunction-references=y -Wexceptions=y -Wtyped-continuations=y
 
-SOURCES=http.wat erdump.wat jsone_decode.wat elib.wat
+SOURCES=http.wat jsone_decode.wat elib.wat jsone_encode.wat
 
-DEPS=erwasm/minibeam/math.wat erwasm/minibeam/minibeam_bs.wat erwasm/minibeam/minibeam_list.wat erwasm/minibeam/minibeam_eq.wat erwasm/minibeam/minibeam_tuple.wat erwasm/minibeam/shim.wat
+DEPS=erwasm/minibeam/math.wat \
+  erwasm/minibeam/minibeam_mem.wat \
+  erwasm/minibeam/minibeam_bs.wat \
+  erwasm/minibeam/minibeam_list.wat \
+  erwasm/minibeam/minibeam_eq.wat \
+  erwasm/minibeam/minibeam_tuple.wat \
+  erwasm/minibeam/shim.wat
 
 SOURCES_SYNC=$(SOURCES) $(DEPS) sync-entry.wat
 SOURCES_ASYNC=$(SOURCES) $(DEPS) async-entry.wat erwasm/minibeam/minibeam_proc.wat

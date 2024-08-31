@@ -11,7 +11,12 @@ question(X) ->
     { q, 123456 } -> "Ok, 7890\n";
     { q, [1,2] } -> "Jo!\n";
     { q, 11 } -> "Nope\n";
-    {q, <<"Hi">>} -> "Sup\n";
+    {q, <<"Hi">>} ->
+      Ret = case jsone_encode:encode([<<"x">>,2]) of
+        {ok, Buf} -> Buf;
+        {error, Reason} -> "Ooops"
+      end,
+      Ret;
     {q, [<<"HiHi">>]} -> "Nice!\n";
     {q, [<<"HiHi">>, 1]} -> "Very nice!\n";
     {q, {[{<<$x>>, 1}]}} -> "key x is set to 1\n";
