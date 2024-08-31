@@ -10,7 +10,7 @@ SOURCES_SYNC=$(SOURCES) $(DEPS) sync-entry.wat
 SOURCES_ASYNC=$(SOURCES) $(DEPS) async-entry.wat erwasm/minibeam/minibeam_proc.wat
 
 %.S: %.erl
-	erlc -S $<
+	erlc -DNO_MAP_TYPE -S $<
 
 %.wat: %.S
 	python erwasm/erwasmc.py $< $@
