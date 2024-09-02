@@ -9,17 +9,22 @@ question(X) ->
     { raw, $X } -> "200 X!\n";
 
     { q, 123456 } -> "Ok, 7890\n";
-    { q, [1,2] } -> "Jo!\n";
+    { q, [ 1, 2] } -> "Jo!\n";
     { q, 11 } -> "Nope\n";
-    {q, <<"Hi">>} ->
-      Ret = case jsone_encode:encode([<<"x">>,2]) of
-        {ok, Buf} -> Buf;
-        {error, Reason} -> "Ooops"
-      end,
-      Ret;
-    {q, [<<"HiHi">>]} -> "Nice!\n";
-    {q, [<<"HiHi">>, 1]} -> "Very nice!\n";
-    {q, {[{<<$x>>, 1}]}} -> "key x is set to 1\n";
+
+    { q, <<"Hi">>} ->
+      case jsone_encode:encode([1,2]) of
+       { ok, Buf } -> Buf;
+       { error, _Reason} -> "Ooops"
+      end;
+    { q, [<<"HiHi">>]} -> "Nice!\n";
+    { q, [<<"HiHi">>, 1]} -> "Very nice!\n";
+    { q, {[{<<$x>>, 1}]}} -> "key x is set to 1\n";
+    { q, Data} ->
+      case jsone_encode:encode(Data) of
+       { ok, Buf } -> Buf;
+       { error, _Reason } -> "Roundtrip fail"
+      end;
 
     { error } -> "400 This was not a json\n";
 

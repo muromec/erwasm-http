@@ -18,7 +18,6 @@
   (import "wasi:io/streams@0.2.0" "[resource-drop]output-stream" (func $drop_stream (param i32)))
 
   (import "lib" "dispatch" (func $dispatch (param i32) (result i32)))
-  (import "erdump" "log" (func $log (param i32 i32) (result i32)))
   (import "erdump" "dump" (func $read_erl_mem (param i32 i32) (result i32)))
   (import "erdump" "write_str" (func $make_erl_str (param i32 i32) (result i32)))
   (import "erdump" "write_buf" (func $make_erl_buf (param i32 i32) (result i32)))
